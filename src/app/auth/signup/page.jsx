@@ -1,21 +1,51 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { Button, Description, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 
 const SignUpPage = () => {
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value.toString();
+        const userData = Object.fromEntries(formData.entries());
+        console.log("Submitted data", userData);
+
+        const { data, error } = await authClient.signUp.email({
+            name: userData.name,
+            email: userData.email,
+            password: userData.password,
+
+            callbackURL: '/'
         });
 
-        alert(`Form submitted with: ${JSON.stringify(data, null, 2)}`);
+        if (error) {
+            console.log("Error signing up:", error);
+            alert("Sign up failed: " + error.message);
+        } else {
+            console.log("Sign up successful:", data);
+            alert("Sign up successful!");
+        }
     };
 
     return (
-        <Form className="flex w-96 flex-col gap-4" onSubmit={onSubmit}>
+        <Form className="container mx-auto max-w-3xl mt-10 px-4 py-8 space-y-5 shadow-2xl rounded-2xl" onSubmit={onSubmit}>
+
+            <TextField
+                isRequired
+                name="name"
+                type="text"
+                validate={(value) => {
+                    if (value.length < 2) {
+                        return "Name must be at least 2 characters";
+                    }
+                    return null;
+                }}
+            >
+                <Label className="text-lg font-medium text-amber-950">Name</Label>
+                <Input suppressHydrationWarning placeholder="Your Name" />
+                <FieldError />
+            </TextField>
+
             <TextField
                 isRequired
                 name="email"
@@ -28,7 +58,7 @@ const SignUpPage = () => {
                     return null;
                 }}
             >
-                <Label>Email</Label>
+                <Label className="text-lg font-medium text-amber-950">Email</Label>
                 <Input placeholder="john@example.com" />
                 <FieldError />
             </TextField>
@@ -52,17 +82,19 @@ const SignUpPage = () => {
                     return null;
                 }}
             >
-                <Label>Password</Label>
+                <Label className="text-lg font-medium text-amber-950">Password</Label>
                 <Input placeholder="Enter your password" />
-                <Description>Must be at least 8 characters with 1 uppercase and 1 number</Description>
+                <Description>Must be at least 8 characters with 1 uppercase and 1 number
+
+                </Description>
                 <FieldError />
             </TextField>
 
             <div className="flex gap-2">
-                <Button type="submit">
+                <Button className="text-lg font-medium" type="submit">
                     Submit
                 </Button>
-                <Button type="reset" variant="secondary">
+                <Button className="text-lg font-medium" type="reset" variant="secondary">
                     Reset
                 </Button>
             </div>
